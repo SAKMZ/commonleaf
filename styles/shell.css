@@ -118,6 +118,22 @@
     background-color: color-mix(in srgb, var(--ink) 6%, transparent);
   }
 
+  /*
+   * Writing is the one thing in the bar worth finding without looking, so it
+   * carries the ink colour while everything around it is muted. A border
+   * rather than a filled button: the bar sits on paper, and a solid block of
+   * colour would read as a web application pasted onto a page.
+   */
+  .shell-action-primary {
+    padding-inline: 0.6rem;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+  }
+
+  .shell-action-primary:hover {
+    border-color: var(--ink-faint);
+  }
+
   /* ── Index contents ────────────────────────────────────────────────────────*/
   .index-heading {
     font-size: 0.6875rem;

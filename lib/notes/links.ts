@@ -1,6 +1,6 @@
 import type { NoteCollection } from './collection';
 import type { WikiLinkResolution } from '../markdown/remark-wikilinks';
-import { slugifyPath } from './paths';
+import { folderOf, slugifyPath } from './paths';
 import type { WikiLink } from './wikilinks';
 
 /**
@@ -56,6 +56,23 @@ export function slugFromPathname(pathname: string): string | null {
   const slug = pathname.slice(prefix.length).split('/').map(decodeURIComponent).join('/');
 
   return slug === '' ? null : slug;
+}
+
+/**
+ * The folder a URL is standing in.
+ *
+ * Used to file a new note where the writer already is: starting one while
+ * reading `philosophy/stoicism`, or while looking at the `philosophy` folder,
+ * puts it in `philosophy`. Anywhere else it is the root, which is also the
+ * honest answer — there is no folder in view to mean anything else.
+ */
+export function folderFromPathname(pathname: string): string {
+  if (pathname.startsWith('/folders/')) {
+    return pathname.slice('/folders/'.length).split('/').map(decodeURIComponent).join('/');
+  }
+
+  const slug = slugFromPathname(pathname);
+  return slug ? folderOf(slug) : '';
 }
 
 /**

@@ -146,4 +146,61 @@
     content: '❦';
     font-size: 1rem;
   }
+
+  /* ── Turning the page ──────────────────────────────────────────────────────*/
+  .page-turn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .page-turn-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+    color: var(--ink-muted);
+  }
+
+  .page-turn-link:hover {
+    color: var(--accent);
+  }
+
+  /* The next note sits against the right edge, where the page continues. */
+  .page-turn-next {
+    grid-column: 2;
+    justify-content: flex-end;
+    text-align: end;
+  }
+
+  .page-turn-text {
+    min-width: 0;
+  }
+
+  .page-turn-label {
+    display: block;
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .page-turn-title {
+    /* Two lines, then clipped: a long title must not set the row's height. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    margin-top: 0.15rem;
+  }
+
+  .page-turn-arrow {
+    flex: none;
+    /* Aligns the chevron with the title rather than with the label above it. */
+    align-self: center;
+  }
 }

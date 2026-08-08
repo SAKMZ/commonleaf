@@ -7,7 +7,12 @@
  * outside the tree means none of them need to be near each other.
  */
 
-export type PaletteMode = 'search' | 'commands';
+/**
+ * `create` is `search` with the order reversed: writing a new note is the
+ * point, and the matches are shown underneath so that a note you have already
+ * written is hard to write twice.
+ */
+export type PaletteMode = 'search' | 'commands' | 'create';
 
 export interface PaletteState {
   readonly open: boolean;

@@ -1,6 +1,12 @@
 'use client';
 
-import { CalendarDays, PanelLeft, Search, Settings as SettingsIcon } from 'lucide-react';
+import {
+  CalendarDays,
+  PanelLeft,
+  PenLine,
+  Search,
+  Settings as SettingsIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -58,6 +64,8 @@ export function Topbar({
 
       <SearchTrigger />
 
+      <NewNoteButton />
+
       <TodayButton />
 
       <Link href={routes.settings} className="shell-action" title="Settings">
@@ -86,6 +94,28 @@ function SearchTrigger() {
       <Search size={15} aria-hidden="true" />
       <span className="truncate">Search the notebook…</span>
       <kbd className="palette-key ms-auto hidden sm:inline">{modifier} K</kbd>
+    </button>
+  );
+}
+
+/**
+ * Starting a note.
+ *
+ * Opens the palette rather than creating anything itself: a note needs a name
+ * before it can be a file, and the palette is already the one place in the app
+ * that takes a title and turns it into a note. Two ways in, one implementation.
+ */
+function NewNoteButton() {
+  return (
+    <button
+      type="button"
+      className="shell-action shell-action-primary"
+      title="Write a new note"
+      onClick={() => openPalette('create')}
+    >
+      <PenLine size={17} aria-hidden="true" />
+      <span className="hidden text-sm sm:inline">New note</span>
+      <span className="sr-only sm:hidden">Write a new note</span>
     </button>
   );
 }

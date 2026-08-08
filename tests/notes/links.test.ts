@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { routes, slugFromPathname } from '@/lib/notes/links';
+import { folderFromPathname, routes, slugFromPathname } from '@/lib/notes/links';
 
 describe('routes', () => {
   it('encodes each segment but keeps the separators', () => {
@@ -34,5 +34,26 @@ describe('slugFromPathname', () => {
     expect(slugFromPathname('/tags/books')).toBeNull();
     expect(slugFromPathname('/settings')).toBeNull();
     expect(slugFromPathname('/notes/')).toBeNull();
+  });
+});
+
+describe('folderFromPathname', () => {
+  it('uses the folder being looked at', () => {
+    expect(folderFromPathname('/folders/books/philosophy')).toBe('books/philosophy');
+  });
+
+  it('uses the folder of the note being read or written', () => {
+    expect(folderFromPathname('/notes/books/stoicism')).toBe('books');
+    expect(folderFromPathname('/edit/books/stoicism')).toBe('books');
+  });
+
+  it('decodes what the route encoded', () => {
+    expect(folderFromPathname(routes.folder('reading list'))).toBe('reading list');
+  });
+
+  it('is the root anywhere with no folder in view', () => {
+    expect(folderFromPathname('/')).toBe('');
+    expect(folderFromPathname('/settings')).toBe('');
+    expect(folderFromPathname('/notes/loose')).toBe('');
   });
 });

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { NoteMarkdown } from '@/components/markdown/NoteMarkdown';
 import { NoteActions } from '@/components/notes/NoteActions';
+import { PageTurn } from '@/components/notes/PageTurn';
 import { WriteThisNote } from '@/components/notes/WriteThisNote';
 import { Page } from '@/components/Page';
 import { SetupNeeded } from '@/components/SetupNeeded';
@@ -52,6 +53,7 @@ export default async function NotePage({ params }: PageProps) {
   if (!note) return <Unwritten slug={safe} />;
 
   const backlinks = collection.backlinks(note.slug);
+  const { previous, next } = collection.neighbours(note.slug);
 
   return (
     <Page>
@@ -136,6 +138,9 @@ export default async function NotePage({ params }: PageProps) {
           </ul>
         </section>
       )}
+
+      {/* Last, because turning the page is what you do having finished this one. */}
+      <PageTurn previous={previous} next={next} />
 
       <NoteActions slug={note.slug} title={note.title} />
     </Page>

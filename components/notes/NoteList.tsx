@@ -16,10 +16,11 @@ export function NoteList({
   empty = 'Nothing here yet.',
 }: {
   notes: readonly Note[];
-  empty?: string;
+  /** Prose, or something to act on — an empty notebook wants a way out of it. */
+  empty?: React.ReactNode;
 }) {
   if (notes.length === 0) {
-    return <p className="text-ink-muted italic">{empty}</p>;
+    return typeof empty === 'string' ? <p className="text-ink-muted italic">{empty}</p> : empty;
   }
 
   return (

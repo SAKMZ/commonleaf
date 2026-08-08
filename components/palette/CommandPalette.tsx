@@ -11,13 +11,32 @@ import { api } from '@/lib/api/client';
 import { buildCommands, filterCommands } from '@/lib/commands/registry';
 import { isTypingTarget, matchesShortcut, SHORTCUTS } from '@/lib/keyboard';
 import { toIsoDate } from '@/lib/notes/dates';
-import { routes, slugFromPathname } from '@/lib/notes/links';
+import { folderFromPathname, routes, slugFromPathname } from '@/lib/notes/links';
 import { closePalette, togglePalette, type PaletteMode } from '@/lib/palette/store';
 import { loadSearcher } from '@/lib/search/cache';
 import type { SearchDocument } from '@/lib/search/documents';
 
 /** How many notes are worth offering before the list becomes a chore to read. */
 const NOTE_LIMIT = 7;
+
+/** What the palette says about itself, which is all that separates the modes. */
+const PROMPTS: Record<PaletteMode, { label: string; placeholder: string; empty: string }> = {
+  search: {
+    label: 'Search the notebook',
+    placeholder: 'Search notes, or type to create one…',
+    empty: 'Nothing matches.',
+  },
+  commands: {
+    label: 'Run a command',
+    placeholder: 'Run a command…',
+    empty: 'Nothing matches.',
+  },
+  create: {
+    label: 'Name the new note',
+    placeholder: 'What is the note called?',
+    empty: 'Type a title, and it will be written.',
+  },
+};
 
 interface PaletteItem {
   readonly id: string;
@@ -113,7 +132,7 @@ function Palette({ mode }: { mode: PaletteMode }) {
    * already in flight for everyone.
    */
   useEffect(() => {
-    if (mode !== 'search') return;
+    if (mode === 'commands') return;
     let current = true;
 
     loadSearcher()
@@ -131,9 +150,11 @@ function Palette({ mode }: { mode: PaletteMode }) {
     };
   }, [mode, query]);
 
+  const folder = folderFromPathname(pathname);
+
   const items = useMemo(
-    () => buildItems({ mode, query, notes, commands, router }),
-    [mode, query, notes, commands, router],
+    () => buildItems({ mode, query, notes, commands, router, folder }),
+    [mode, query, notes, commands, router, folder],
   );
 
   // Falls back to the first row when the selected one is gone — or was never
@@ -205,10 +226,8 @@ function Palette({ mode }: { mode: PaletteMode }) {
           aria-controls="palette-list"
           aria-autocomplete="list"
           aria-activedescendant={items[active] ? `palette-option-${active}` : undefined}
-          aria-label={mode === 'search' ? 'Search the notebook' : 'Run a command'}
-          placeholder={
-            mode === 'search' ? 'Search notes, or type to create one…' : 'Run a command…'
-          }
+          aria-label={PROMPTS[mode].label}
+          placeholder={PROMPTS[mode].placeholder}
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -223,7 +242,7 @@ function Palette({ mode }: { mode: PaletteMode }) {
                 ? 'The search index could not be loaded.'
                 : status === 'loading'
                   ? 'Reading the notebook…'
-                  : 'Nothing matches.'}
+                  : PROMPTS[mode].empty}
             </p>
           ) : (
             items.map((item, index) => (
@@ -248,7 +267,7 @@ function Palette({ mode }: { mode: PaletteMode }) {
             <kbd className="palette-key">↑↓</kbd> move
           </span>
           <span>
-            <kbd className="palette-key">↵</kbd> open
+            <kbd className="palette-key">↵</kbd> {mode === 'create' ? 'write' : 'open'}
           </span>
           <span className="ms-auto">
             <kbd className="palette-key">{modifier} ⇧ P</kbd> commands
@@ -307,19 +326,67 @@ function buildItems({
   notes,
   commands,
   router,
+  folder,
 }: {
   mode: PaletteMode;
   query: string;
   notes: readonly SearchDocument[];
   commands: ReturnType<typeof buildCommands>;
   router: ReturnType<typeof useRouter>;
+  folder: string;
 }): PaletteItem[] {
   const trimmed = query.trim();
+
+  if (mode === 'commands') {
+    return filterCommands(commands, query).map((command): PaletteItem => ({
+      id: command.id,
+      title: command.title,
+      hint: command.hint,
+      group: command.group,
+      icon: command.icon,
+      run: command.run,
+    }));
+  }
+
+  const creating = mode === 'create';
+
+  const found: PaletteItem[] = notes.map((note) => ({
+    id: `note:${note.slug}`,
+    title: note.title,
+    hint: note.folder || note.excerpt,
+    group: creating ? 'Already written' : trimmed === '' ? 'Recently written' : 'Notes',
+    icon: FileText,
+    run: () => router.push(routes.note(note.slug)),
+  }));
+
+  const exists = notes.some((note) => note.title.toLowerCase() === trimmed.toLowerCase());
+  const write: PaletteItem[] =
+    trimmed === '' || exists
+      ? []
+      : [
+          {
+            id: 'create',
+            title: `Write “${trimmed}”`,
+            hint: folder ? `A new note in ${folder}` : 'A new note',
+            group: 'Write',
+            icon: Plus,
+            run: async () => {
+              const result = await api.createNote({ title: trimmed, folder });
+              // Straight into the editor: a note that has just been named has
+              // nothing to read, and writing it is what was asked for.
+              router.push(routes.edit(result.slug));
+            },
+          },
+        ];
+
+  // Writing leads in create mode and follows in search mode, which is the only
+  // difference between them: one was opened to write, the other to find.
+  if (creating) return [...write, ...found];
 
   // An empty search shows the notebook, not the whole command list — the
   // actions are there for someone who has started typing a verb.
   const matching =
-    mode === 'search' && trimmed === ''
+    trimmed === ''
       ? []
       : filterCommands(commands, query).map((command): PaletteItem => ({
           id: command.id,
@@ -330,32 +397,5 @@ function buildItems({
           run: command.run,
         }));
 
-  if (mode === 'commands') return matching;
-
-  const items: PaletteItem[] = notes.map((note) => ({
-    id: `note:${note.slug}`,
-    title: note.title,
-    hint: note.folder || note.excerpt,
-    group: trimmed === '' ? 'Recently written' : 'Notes',
-    icon: FileText,
-    run: () => router.push(routes.note(note.slug)),
-  }));
-
-  const exists = notes.some((note) => note.title.toLowerCase() === trimmed.toLowerCase());
-
-  if (trimmed !== '' && !exists) {
-    items.push({
-      id: 'create',
-      title: `Create “${trimmed}”`,
-      hint: 'A new note, filed where you type it',
-      group: 'Write',
-      icon: Plus,
-      run: async () => {
-        const result = await api.createNote({ title: trimmed });
-        router.push(routes.note(result.slug));
-      },
-    });
-  }
-
-  return [...items, ...matching];
+  return [...found, ...write, ...matching];
 }

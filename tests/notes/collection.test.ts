@@ -188,4 +188,45 @@ describe('NoteCollection', () => {
       expect(collect().random()).toBeUndefined();
     });
   });
+
+  describe('neighbours', () => {
+    const shelf = () =>
+      collect(
+        note('books/b-second', '---\ntitle: Second\n---\n'),
+        note('books/c-third', '---\ntitle: Third\n---\n'),
+        note('books/a-first', '---\ntitle: First\n---\n'),
+      );
+
+    it('reads a folder in file order, not in the order it was written', () => {
+      const { previous, next } = shelf().neighbours('books/b-second');
+
+      expect(previous?.slug).toBe('books/a-first');
+      expect(next?.slug).toBe('books/c-third');
+    });
+
+    it('stops at the ends', () => {
+      expect(shelf().neighbours('books/a-first').previous).toBeUndefined();
+      expect(shelf().neighbours('books/c-third').next).toBeUndefined();
+    });
+
+    it('treats a subfolder as its own sequence', () => {
+      // `books/deep/x` is not the page after `books/a`, because it is inside
+      // something else — the way a chapter is not the next paragraph.
+      const notes = collect(
+        note('books/a', '---\ntitle: A\n---\n'),
+        note('books/deep/x', '---\ntitle: X\n---\n'),
+        note('books/z', '---\ntitle: Z\n---\n'),
+      );
+
+      expect(notes.neighbours('books/a').next?.slug).toBe('books/z');
+      expect(notes.neighbours('books/deep/x')).toEqual({
+        previous: undefined,
+        next: undefined,
+      });
+    });
+
+    it('has nothing to say about a note that does not exist', () => {
+      expect(shelf().neighbours('books/nowhere')).toEqual({});
+    });
+  });
 });

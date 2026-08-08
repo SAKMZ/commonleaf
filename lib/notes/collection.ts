@@ -114,6 +114,30 @@ export class NoteCollection {
   }
 
   /**
+   * The notes either side of this one, read as a sequence.
+   *
+   * A folder is treated as a run of pages and ordered by file name, so the
+   * order is whatever `ls` would show and renaming a file is how you change it.
+   * That is deliberately the cheapest possible answer: no ordering metadata to
+   * keep in step with the files, and a vault from anywhere already has one.
+   *
+   * Only the folder's own notes count, not those in folders beneath it — a
+   * subfolder is its own sequence rather than a continuation of this one.
+   */
+  neighbours(slug: string): { previous?: Note; next?: Note } {
+    const note = this.bySlug.get(slug);
+    if (!note) return {};
+
+    const siblings = this.notes
+      .filter((candidate) => candidate.folder === note.folder)
+      .sort((a, b) => a.slug.localeCompare(b.slug));
+
+    const at = siblings.findIndex((candidate) => candidate.slug === slug);
+
+    return { previous: siblings[at - 1], next: siblings[at + 1] };
+  }
+
+  /**
    * Wiki link targets with no note behind them.
    *
    * These are the notebook's open questions — things referred to but not yet

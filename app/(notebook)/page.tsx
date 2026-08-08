@@ -1,4 +1,5 @@
 import { NoteList } from '@/components/notes/NoteList';
+import { StartWriting } from '@/components/notes/StartWriting';
 import { Page } from '@/components/Page';
 import { SetupNeeded } from '@/components/SetupNeeded';
 import { branding } from '@/lib/branding';
@@ -29,10 +30,7 @@ export default async function HomePage() {
           Recently written
         </h2>
 
-        <NoteList
-          notes={recent}
-          empty="The notebook is empty. Press ⌘K and type a title to write the first note."
-        />
+        <NoteList notes={recent} empty={<StartWriting />} />
       </section>
     </Page>
   );

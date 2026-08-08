@@ -8,7 +8,7 @@ decisions.
 Keep it current. Every milestone updates the status table and adds any decision
 that a newcomer would otherwise have to reverse-engineer.
 
-**Last updated:** end of Milestone 6.
+**Last updated:** end of Milestone 7.
 
 ---
 
@@ -265,6 +265,33 @@ ZIP is untrusted input.
 the note and nowhere else. A palette is somewhere you arrive by fuzzy match, and
 "Delete this note" one keystroke from "Daily note" is a trap.
 
+**A note gets named in one place.** Creating a note needs a title, and the
+palette already takes a title and turns it into a note. **New note** in the bar
+therefore opens the palette in `create` mode rather than doing the work itself:
+two ways in, one implementation, and no second dialog to keep in step. The mode
+is the same palette with the order reversed — writing first, matching notes
+underneath, so a note you have already written is hard to write twice. The new
+note is filed in the folder the URL is standing in, which is what
+`folderFromPathname` is for.
+
+For a while there was no way in at all: creating a note was reachable only by
+typing a title into search, following an unwritten link, or the daily button,
+and the empty library said "press ⌘K" where a button belonged. Every path
+existed and none of them was visible.
+
+**Notes in a folder read in file order, and nothing records that order.** The
+alternatives were a `pages:` list in a `_book.md`, an `order:` number in
+frontmatter, or filename prefixes. File order needs none of them: a vault from
+Obsidian or a Jekyll `_posts` directory already has an order, renaming a file is
+how you change it, and there is no metadata that can fall out of step with the
+files. A subfolder is its own sequence rather than a continuation of its parent,
+which is the difference between a chapter and the next paragraph.
+
+This is deliberately the small version of "make it feel like a book". A shelf of
+books with covers, an explicit contents list and drag-to-reorder are all
+possible on top of it later; none of them is needed for the page turn, which is
+what the feeling actually rests on.
+
 ---
 
 ## 4. Folder layout
@@ -351,14 +378,15 @@ to test; **server-only** modules touch storage. Only two are server-only.
 
 ## 6. Status
 
-| #   | Milestone          | Status       |
-| --- | ------------------ | ------------ |
-| 1   | Project foundation | **Complete** |
-| 2   | Git storage layer  | **Complete** |
-| 3   | Markdown engine    | **Complete** |
-| 4   | Editor             | **Complete** |
-| 5   | Interface          | **Complete** |
-| 6   | Polish             | **Complete** |
+| #   | Milestone                       | Status       |
+| --- | ------------------------------- | ------------ |
+| 1   | Project foundation              | **Complete** |
+| 2   | Git storage layer               | **Complete** |
+| 3   | Markdown engine                 | **Complete** |
+| 4   | Editor                          | **Complete** |
+| 5   | Interface                       | **Complete** |
+| 6   | Polish                          | **Complete** |
+| 7   | Writing and reading in sequence | **Complete** |
 
 ### Complete
 
@@ -436,6 +464,13 @@ never hidden in live preview and sat in the prose looking like a typo, and that
 the palette stretched to its own `max-height` whatever was in it. Both fixed.
 300 tests.
 
+**Milestone 7 — Writing and reading in sequence.** A **New note** button in the
+bar, which was simply missing: every way of creating a note was a side door, and
+the empty library named a keyboard shortcut instead of offering one. It opens
+the palette in a third mode that leads with writing and files the note in the
+folder currently on screen. And a page turn under every note — the previous and
+next note in its folder, in file order, recorded nowhere. 308 tests.
+
 ### Measured, so the next person does not have to guess
 
 Taken from a production build, gzipped, against the sample vault:
@@ -467,6 +502,10 @@ screenshots` drives a headless Chromium through four views. They will drift
   from the interface unless someone re-runs it after a visible change; nothing
   enforces that, and a CI check that diffs images would be more trouble than it
   is worth for a personal notebook.
+- A folder's reading order is its file order, so controlling it means naming
+  files `01-…`, `02-…`, which shows up in no interface but the file browser.
+  That is the price of storing no ordering metadata, and worth paying until
+  somebody actually wants to reorder a long folder by hand.
 - The note index caches per server instance. On Vercel that means one cache per
   serverless instance — correct, but a cold instance rebuilds. Acceptable for a
   personal notebook; revisit only if it proves slow in practice.

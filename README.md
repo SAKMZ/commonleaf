@@ -46,6 +46,12 @@ you look at the note rather than at its source. A formatting toolbar, a `/` menu
 of plain-English blocks, and a short syntax card mean you never have to learn a
 single symbol — and every shortcut is still there if you already know them.
 
+**Notes that read in order.** A folder is a run of pages: every note offers the
+one before and the one after it, so reaching the end of a note is a page turn
+rather than a full stop. The order is the order of the files themselves —
+rename one and it moves. Nothing is stored to make this work, so a vault from
+anywhere already has it.
+
 **Links between notes.** Write `[[Another note]]` and it links. Follow a link to
 a note that does not exist yet and Commonleaf offers to write it. Every note
 shows what links back to it, quoted in context.
@@ -54,9 +60,12 @@ shows what links back to it, quoted in context.
 and the tag nests under `books`. Both are just where the file is and what is
 written in it.
 
+**Writing a new note.** **New note** in the bar asks for a title and nothing
+else, and files the note in the folder you are already looking at. `Ctrl/⌘ K`
+does the same for a title that turns out not to exist yet.
+
 **Search that is instant.** `Ctrl/⌘ K` searches titles, tags, folders and
-excerpts. `Ctrl/⌘ ⇧ P` runs commands. Typing a title nobody has written offers
-to create it.
+excerpts. `Ctrl/⌘ ⇧ P` runs commands.
 
 **Version history from Git.** Every save is a commit with a readable message.
 Any past version can be read and restored — restoring writes a new commit, so
