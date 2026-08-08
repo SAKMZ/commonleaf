@@ -1,4 +1,6 @@
 import type { SearchDocument } from '../search/documents';
+import type { StoredSettings } from '../settings/document';
+import type { Settings } from '../settings/types';
 import type { ImportSummary } from '../vault/types';
 import type { ApiError } from './errors';
 
@@ -138,6 +140,20 @@ export const api = {
   deleteNote: (slug: string, title?: string) =>
     request<void>(`${notePath(slug)}${title ? `?title=${encodeURIComponent(title)}` : ''}`, {
       method: 'DELETE',
+    }),
+
+  /**
+   * Records the reader's preferences in the notebook. Returns the timestamp.
+   *
+   * `keepalive` is for the last send as the page unloads, where the request
+   * has to outlive the document that started it.
+   */
+  saveSettings: (settings: Settings, options: { keepalive?: boolean } = {}) =>
+    request<StoredSettings>('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settings }),
+      keepalive: options.keepalive,
     }),
 
   ensureWikiLink: (target: string) => postJson<SaveResult>('/api/wikilinks', { target }),

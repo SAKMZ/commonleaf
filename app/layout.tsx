@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 
 import { branding } from '@/lib/branding';
 import { buildBootstrapScript } from '@/lib/settings/bootstrap';
+import { readStoredSettings } from '@/lib/settings/server-store';
 import { DEFAULT_SETTINGS } from '@/lib/settings/types';
 import { buildThemeStylesheet } from '@/lib/theme/css';
 import { findTheme } from '@/lib/theme/themes';
@@ -25,10 +26,19 @@ export const viewport: Viewport = {
 };
 
 const themeStylesheet = buildThemeStylesheet();
-const bootstrapScript = buildBootstrapScript();
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * Rendered per request because the settings file is read here.
+ *
+ * Every page of the notebook is already dynamic, so this costs one small read
+ * — cached against the storage revision — and buys the reader their own paper
+ * on a browser that has never seen this notebook before, with no flash.
+ */
+export const dynamic = 'force-dynamic';
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = findTheme(DEFAULT_SETTINGS.theme);
+  const bootstrapScript = buildBootstrapScript(await readStoredSettings());
 
   return (
     <html

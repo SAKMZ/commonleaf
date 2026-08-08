@@ -5,9 +5,9 @@ import { branding } from '@/lib/branding';
 /**
  * Reader preferences.
  *
- * Nothing on this page touches the repository — every setting describes how one
- * person, on one device, likes to read. That is why there is no Save button and
- * no commit.
+ * There is no Save button: a change applies as it is made, and is written to
+ * the notebook a couple of seconds later, in one small JSON file that is not a
+ * note and never appears in the index.
  */
 export const metadata = { title: 'Settings' };
 
@@ -16,7 +16,7 @@ export default function SettingsPage() {
     <Page>
       <PageHeader
         title="Settings"
-        subtitle={`How ${branding.name} looks and behaves on this device. Kept in your browser, never in your notes.`}
+        subtitle={`How ${branding.name} looks and reads. Kept in your notebook, so a new browser starts where you left off.`}
       />
 
       <SettingsForm />

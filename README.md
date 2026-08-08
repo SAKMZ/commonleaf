@@ -76,7 +76,10 @@ written but not yet followed.
 
 **Ten paper themes**, eleven typefaces, adjustable measure, leading and paragraph
 spacing, optional paper grain, deckled edges, a stitched binding and a ribbon
-bookmark. All of it lives in your browser, never in your notes.
+bookmark. All of it is kept in your repository, in one small `commonleaf.json`
+beside your notes — so a new laptop, a phone, or a fresh browser opens the
+notebook set up the way you left it. It is not a note and never appears in the
+index; delete it and you are back to the defaults.
 
 ### What it deliberately does not do
 

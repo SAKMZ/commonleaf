@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Choice, Fieldset, Slider, Toggle } from '@/components/settings/controls';
+import { SettingsSync } from '@/components/settings/SettingsSync';
 import { ThemePicker } from '@/components/settings/ThemePicker';
 import { VaultTransfer } from '@/components/settings/VaultTransfer';
 import { useSettings } from '@/hooks/useSettings';
@@ -13,9 +14,9 @@ import { editorFonts, displayFonts, readingFonts } from '@/lib/theme/fonts';
  * Every reader preference, in one place.
  *
  * Changes apply the moment they are made — there is no Save button, because
- * there is nothing to save: settings live in `localStorage` and on the document
- * element, never in the repository. Changing the line height should not produce
- * a commit.
+ * there is nothing to press it for: the change is on the document element
+ * immediately, in this device's storage immediately, and committed to the
+ * notebook once the reader has stopped adjusting things.
  */
 
 const DATE_PATTERNS = [
@@ -178,7 +179,9 @@ export function SettingsForm() {
 
       <VaultTransfer />
 
-      <div className="border-rule border-t pt-6">
+      <div className="border-rule space-y-4 border-t pt-6">
+        <SettingsSync />
+
         {confirmingReset ? (
           <p className="flex flex-wrap items-center gap-3 text-sm">
             <span className="text-ink-muted">

@@ -8,7 +8,7 @@ decisions.
 Keep it current. Every milestone updates the status table and adds any decision
 that a newcomer would otherwise have to reverse-engineer.
 
-**Last updated:** end of Milestone 7.
+**Last updated:** end of Milestone 8.
 
 ---
 
@@ -118,10 +118,33 @@ than approximate.
 mean the settings screen and the stylesheet could disagree, and eventually they
 would.
 
-**Reader settings live in `localStorage`, not the repository.** Changing the line
-height should not produce a commit, and a phone and a desktop should be able to
-differ. The `/settings` directory in the vault is reserved for anything that is
-genuinely content.
+**Reader settings live in the repository _and_ in `localStorage`.** This
+reverses an earlier decision, and the earlier reasoning — that changing the line
+height should not produce a commit, and that a phone and a desktop should be
+able to differ — turned out to be worth less than what it cost: a new browser
+started from scratch, and a notebook carried what was in it but not how it was
+meant to be read.
+
+Both copies are kept, because each answers something the other cannot.
+`localStorage` is written synchronously on every change and is what the
+pre-paint script reads, so a choice survives a reload instantly and works with
+no network at all. `commonleaf.json` in the repository is written once the
+reader has stopped adjusting things, and is what a device that has never seen
+this notebook starts from — the root layout reads it server-side and inlines it,
+so there is still no flash and still no round trip from the browser.
+
+They are reconciled by timestamp, newest wins, decided once in the bootstrap
+script, which then writes the winner back to `localStorage` so that everything
+downstream goes on reading exactly one place. Last-write-wins is the whole
+conflict strategy: two devices with badly wrong clocks can disagree about which
+is newer, and inventing a merge protocol for one person's font size would be
+worse than that is bad.
+
+The write is debounced by two seconds and flushed on `pagehide` with
+`keepalive`, because choosing a theme and immediately navigating to look at it
+is the obvious thing to do on that screen and happens well inside the delay.
+The file is at the repository root rather than in the content directory: it is
+not Markdown, it is not a note, and nothing in the index will ever see it.
 
 **The no-flash bootstrap script shares its code with the React provider.**
 `applySettings()` is stringified into an inline `<script>` via `.toString()`. It
@@ -217,8 +240,8 @@ save endpoint merges that into the frontmatter already on disk. This also means
 a field added by a future version is not wiped out by an older client.
 
 **Reader settings live outside React, behind `useSyncExternalStore`.**
-`localStorage` and the document element are external systems, so the state
-mirroring them does not belong in the component tree. There is no provider, no
+`localStorage`, the document element and the notebook are external systems, so
+the state mirroring them does not belong in the component tree. There is no provider, no
 cascade of renders at mount, and no hydration mismatch — React is told
 explicitly that the server's snapshot is the defaults. Anything can read or
 change a setting, including code that is not a component.
@@ -312,7 +335,8 @@ lib/          The domain. Pure TypeScript, no JSX.
   notes/          The note model and everything derived from it.
   palette/        Whether the palette is open. An external store.
   search/         Search documents, the Fuse wrapper, the browser-side cache.
-  settings/       Reader preferences, the store, and the pre-paint bootstrap.
+  settings/       Reader preferences: the shape, the on-disk document, the
+                  client store, the server store, and the pre-paint bootstrap.
   storage/        The port and its drivers.
   theme/          Palettes, fonts, generated CSS.
   vault/          Export and import of the whole notebook as an archive.
@@ -378,15 +402,16 @@ to test; **server-only** modules touch storage. Only two are server-only.
 
 ## 6. Status
 
-| #   | Milestone                       | Status       |
-| --- | ------------------------------- | ------------ |
-| 1   | Project foundation              | **Complete** |
-| 2   | Git storage layer               | **Complete** |
-| 3   | Markdown engine                 | **Complete** |
-| 4   | Editor                          | **Complete** |
-| 5   | Interface                       | **Complete** |
-| 6   | Polish                          | **Complete** |
-| 7   | Writing and reading in sequence | **Complete** |
+| #   | Milestone                              | Status       |
+| --- | -------------------------------------- | ------------ |
+| 1   | Project foundation                     | **Complete** |
+| 2   | Git storage layer                      | **Complete** |
+| 3   | Markdown engine                        | **Complete** |
+| 4   | Editor                                 | **Complete** |
+| 5   | Interface                              | **Complete** |
+| 6   | Polish                                 | **Complete** |
+| 7   | Writing and reading in sequence        | **Complete** |
+| 8   | Settings that travel with the notebook | **Complete** |
 
 ### Complete
 
@@ -471,6 +496,15 @@ the palette in a third mode that leads with writing and files the note in the
 folder currently on screen. And a page turn under every note — the previous and
 next note in its folder, in file order, recorded nowhere. 308 tests.
 
+**Milestone 8 — Settings that travel with the notebook.** Preferences are now
+kept in `commonleaf.json` at the repository root as well as in `localStorage`,
+reconciled by timestamp before first paint, debounced by two seconds and
+flushed on `pagehide`. The root layout reads the file server-side and inlines
+it, so a browser that has never seen this notebook opens it correctly with no
+flash and no round trip. A failed commit is reported on the settings screen and
+undoes nothing, because a read-only or unreachable notebook is an ordinary
+state. 320 tests.
+
 ### Measured, so the next person does not have to guess
 
 Taken from a production build, gzipped, against the sample vault:
@@ -502,6 +536,11 @@ screenshots` drives a headless Chromium through four views. They will drift
   from the interface unless someone re-runs it after a visible change; nothing
   enforces that, and a CI check that diffs images would be more trouble than it
   is worth for a personal notebook.
+- Settling on a theme puts a handful of `Update settings` commits in the
+  notebook's history, which is noise next to the notes. Two seconds of quiet
+  coalesces a slider drag into one, but not a browse through ten papers.
+  Squashing consecutive settings commits was considered and rejected: rewriting
+  history to tidy it is a great deal of risk for an aesthetic complaint.
 - A folder's reading order is its file order, so controlling it means naming
   files `01-…`, `02-…`, which shows up in no interface but the file browser.
   That is the price of storing no ordering metadata, and worth paying until

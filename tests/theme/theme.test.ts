@@ -91,7 +91,7 @@ describe('normaliseSettings', () => {
 });
 
 describe('buildBootstrapScript', () => {
-  const script = buildBootstrapScript();
+  const script = buildBootstrapScript(null);
 
   it('is syntactically valid JavaScript', () => {
     expect(() => new Function(script)).not.toThrow();
@@ -105,5 +105,25 @@ describe('buildBootstrapScript', () => {
 
   it('contains no closing script tag that could break out of the tag', () => {
     expect(script.toLowerCase()).not.toContain('</script');
+  });
+
+  it('cannot be broken out of by a setting edited by hand in the notebook', () => {
+    // `dateFormat` is free text, and the notebook's copy is inlined here.
+    const hostile = buildBootstrapScript({
+      settings: { ...DEFAULT_SETTINGS, dateFormat: '</script><script>alert(1)</script>' },
+      updatedAt: 1,
+    });
+
+    expect(hostile.toLowerCase()).not.toContain('</script');
+    expect(() => new Function(hostile)).not.toThrow();
+  });
+
+  it('carries the notebook’s copy so a new browser starts from it', () => {
+    const withRemote = buildBootstrapScript({
+      settings: { ...DEFAULT_SETTINGS, fontSize: 23 },
+      updatedAt: 1,
+    });
+
+    expect(withRemote).toContain('"fontSize":23');
   });
 });

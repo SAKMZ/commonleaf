@@ -4,10 +4,11 @@ import { DEFAULT_THEME_ID } from '../theme/themes';
 /**
  * Reader preferences.
  *
- * These describe how one person, on one device, likes to read — not what the
- * notebook contains. They live in `localStorage` rather than the repository so
- * that changing the line height does not produce a commit, and so that a phone
- * and a desktop can be set up differently.
+ * These describe how a person likes to read, not what the notebook contains.
+ * They are kept in two places: `localStorage`, which is written the instant
+ * anything changes and is what the pre-paint script reads, and one JSON file
+ * in the repository, written once the reader has stopped adjusting things.
+ * See `document.ts` for how the two are reconciled.
  */
 export interface Settings {
   /** A theme id, or `system` to follow the operating system. */
