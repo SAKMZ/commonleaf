@@ -143,6 +143,10 @@ worse than that is bad.
 The write is debounced by two seconds and flushed on `pagehide` with
 `keepalive`, because choosing a theme and immediately navigating to look at it
 is the obvious thing to do on that screen and happens well inside the delay.
+A write that changes nothing is not a write, checked on both sides: `updatedAt`
+moves on every request, so without an explicit comparison an unchanged save
+would still be a real diff and a real commit, and trying three papers before
+returning to the first would leave three commits describing one decision.
 The file is at the repository root rather than in the content directory: it is
 not Markdown, it is not a note, and nothing in the index will ever see it.
 
@@ -503,7 +507,7 @@ flushed on `pagehide`. The root layout reads the file server-side and inlines
 it, so a browser that has never seen this notebook opens it correctly with no
 flash and no round trip. A failed commit is reported on the settings screen and
 undoes nothing, because a read-only or unreachable notebook is an ordinary
-state. 320 tests.
+state, and a write that changes nothing is not a commit. 326 tests.
 
 ### Measured, so the next person does not have to guess
 
@@ -536,11 +540,17 @@ screenshots` drives a headless Chromium through four views. They will drift
   from the interface unless someone re-runs it after a visible change; nothing
   enforces that, and a CI check that diffs images would be more trouble than it
   is worth for a personal notebook.
-- Settling on a theme puts a handful of `Update settings` commits in the
-  notebook's history, which is noise next to the notes. Two seconds of quiet
-  coalesces a slider drag into one, but not a browse through ten papers.
-  Squashing consecutive settings commits was considered and rejected: rewriting
-  history to tidy it is a great deal of risk for an aesthetic complaint.
+- Settling on a theme can still put more than one `Update settings` commit in
+  the notebook's history. Two seconds of quiet coalesces a slider drag, and a
+  change that ends where it started is not written at all, so what remains is
+  one commit per state the reader genuinely paused on. Squashing those was
+  considered and rejected: rewriting history to tidy it is a great deal of risk
+  for an aesthetic complaint.
+- A settings write moves the repository's head, so the next page load rebuilds
+  the note index — on GitHub, one archive download. That is the same cost as
+  saving a note, and settings are changed far less often than notes are, so it
+  is left alone. Fixing it properly would mean a revision token scoped to the
+  content directory, which is a change to the storage port.
 - A folder's reading order is its file order, so controlling it means naming
   files `01-…`, `02-…`, which shows up in no interface but the file browser.
   That is the price of storing no ordering metadata, and worth paying until

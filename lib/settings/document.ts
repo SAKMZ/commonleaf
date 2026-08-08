@@ -81,6 +81,19 @@ export function serialiseStoredSettings({ settings, updatedAt }: StoredSettings)
   return `${JSON.stringify(file, null, 2)}\n`;
 }
 
+/**
+ * Whether two sets of settings say the same thing.
+ *
+ * Compared as text, which is only safe because `normaliseSettings` builds its
+ * result key by key in a fixed order — the same property that makes the file
+ * canonical. It exists so that a write which changes nothing is not a commit:
+ * `updatedAt` moves every time, so without this check turning a toggle on and
+ * off again would leave two commits in a notebook's history.
+ */
+export function sameSettings(a: Settings, b: Settings): boolean {
+  return JSON.stringify(normaliseSettings(a)) === JSON.stringify(normaliseSettings(b));
+}
+
 /** The newer of the two, preferring the notebook when they are the same age. */
 export function newerOf(
   local: StoredSettings | null,

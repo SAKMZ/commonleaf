@@ -3,6 +3,7 @@ import 'server-only';
 import { getStorage } from '../storage';
 import {
   parseStoredSettings,
+  sameSettings,
   serialiseStoredSettings,
   SETTINGS_PATH,
   type StoredSettings,
@@ -62,8 +63,17 @@ export async function readStoredSettings(): Promise<StoredSettings | null> {
  *
  * The timestamp is the server's, not the browser's, so that two devices are
  * compared by one clock rather than by two that disagree.
+ *
+ * A write that changes nothing is not a write. The timestamp alone would make
+ * every request a real diff and therefore a real commit, so settling on a
+ * theme by trying three and coming back to the first would leave three commits
+ * describing one decision. The comparison is against a cached read, so it
+ * costs nothing on the common path.
  */
 export async function writeStoredSettings(settings: Settings): Promise<StoredSettings> {
+  const current = await readStoredSettings();
+  if (current && sameSettings(current.settings, settings)) return current;
+
   const stored: StoredSettings = { settings, updatedAt: Date.now() };
 
   await getStorage().commit('Update settings', [

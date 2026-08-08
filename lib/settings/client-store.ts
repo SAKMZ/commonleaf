@@ -1,5 +1,5 @@
 import { applySettings } from './apply';
-import { parseStoredSettings, serialiseStoredSettings } from './document';
+import { parseStoredSettings, sameSettings, serialiseStoredSettings } from './document';
 import {
   DEFAULT_SETTINGS,
   SETTINGS_STORAGE_KEY,
@@ -144,6 +144,16 @@ export function resetSettings(): void {
  */
 function save(settings: Settings): void {
   writeLocal(settings, Date.now());
+
+  // Back to what the notebook already has — turning a toggle on and off again,
+  // or trying a theme and returning to the first. The server would decline the
+  // write anyway; not asking saves a round trip and a needless "Saving…".
+  if (lastPushed && sameSettings(lastPushed, settings)) {
+    clearTimeout(pendingWrite);
+    pending = null;
+    return;
+  }
+
   pending = settings;
 
   clearTimeout(pendingWrite);
@@ -204,6 +214,7 @@ async function push(settings: Settings): Promise<void> {
     const stored = await api.saveSettings(settings);
     writeLocal(settings, stored.updatedAt);
     pending = null;
+    lastPushed = settings;
     setSyncState({ status: 'saved' });
   } catch (cause) {
     setSyncState({
@@ -225,6 +236,12 @@ const WRITE_DELAY = 2000;
 let pendingWrite: number | undefined;
 let pending: Settings | null = null;
 let watchingUnload = false;
+/**
+ * The last settings the notebook is known to hold, or `null` while that is
+ * unknown — which it is until the first successful write, so a failed one is
+ * always retried by the next change rather than mistaken for done.
+ */
+let lastPushed: Settings | null = null;
 
 export interface SyncState {
   readonly status: 'idle' | 'saving' | 'saved' | 'failed';
