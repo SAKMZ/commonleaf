@@ -1,0 +1,167 @@
+/*
+ * The desk: an index down one side, the page in the middle.
+ *
+ * The index is not a chrome panel — it has no fill of its own, so it reads as
+ * writing on the same desk the paper lies on, separated by a single rule. All
+ * of the showing and hiding happens here rather than in the components, which
+ * is why `Shell.tsx` has almost no layout in it.
+ */
+
+@layer components {
+  .shell {
+    display: flex;
+    min-height: 100dvh;
+  }
+
+  .shell-page {
+    flex: 1;
+    /* Without this a wide table inside a note stretches the whole layout. */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── The index ─────────────────────────────────────────────────────────────
+   * Narrow screens get a drawer over the page; wide screens get a column beside
+   * it. They are different enough that one is transient state and the other is a
+   * saved preference, so they are driven by different attributes.
+   */
+  .shell-index {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 60;
+    width: min(19rem, 84vw);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-color: var(--surface);
+    border-inline-end: 1px solid var(--rule);
+    translate: -100% 0;
+  }
+
+  [dir='rtl'] .shell-index {
+    translate: 100% 0;
+  }
+
+  [data-drawer='open'] .shell-index {
+    translate: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .shell-index {
+      transition: translate 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+  }
+
+  [data-motion='reduced'] .shell-index {
+    transition: none;
+  }
+
+  /* Dims the page behind the open drawer, and closes it when tapped. */
+  .shell-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background-color: var(--ink);
+    opacity: 0.28;
+  }
+
+  @media (min-width: 64rem) {
+    .shell-index {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      height: 100dvh;
+      flex: none;
+      width: 17.5rem;
+      translate: none;
+      transition: none;
+      background-color: transparent;
+    }
+
+    [data-sidebar='closed'] .shell-index,
+    .shell-scrim {
+      display: none;
+    }
+  }
+
+  /* ── The bar above the page ────────────────────────────────────────────────*/
+  .shell-bar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    /* Matches the desk so the page appears to slide underneath it. */
+    background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  /*
+   * Every control in the bar and the index: quiet until pointed at, and never a
+   * button that looks like a button.
+   */
+  .shell-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    color: var(--ink-muted);
+    border-radius: 2px;
+  }
+
+  .shell-action:hover {
+    color: var(--ink);
+    background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+
+  /* ── Index contents ────────────────────────────────────────────────────────*/
+  .index-heading {
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .index-link {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 2px;
+    color: var(--ink-muted);
+    line-height: 1.4;
+  }
+
+  .index-link:hover {
+    color: var(--ink);
+    background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+
+  /*
+   * The page you are on. A left rule rather than a filled pill — the same mark
+   * you would make in a margin.
+   */
+  .index-link[aria-current] {
+    color: var(--ink);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  .index-count {
+    flex: none;
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Nested folders and tags, indented by one step per level. */
+  .index-tree ul {
+    margin-inline-start: 0.7rem;
+    border-inline-start: 1px solid var(--rule);
+    padding-inline-start: 0.25rem;
+  }
+}

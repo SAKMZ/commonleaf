@@ -1,0 +1,302 @@
+/*
+ * Reading typography.
+ *
+ * The `.reading` class is the only place rendered Markdown gets styled. It is
+ * written as plain CSS rather than utility classes because the HTML it styles
+ * is produced by the Markdown renderer, not by hand, and because a book's
+ * typography deserves to be readable in one place.
+ *
+ * Sizes are expressed relative to `--reading-size` so that the reader's font
+ * size setting scales the whole hierarchy, not just the body text.
+ */
+
+@layer components {
+  .reading {
+    font-family: var(--font-reading);
+    font-size: var(--reading-size);
+    line-height: var(--reading-leading);
+    color: var(--ink);
+    /* Old-style figures sit better in running text than lining figures. */
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    hanging-punctuation: first last;
+    overflow-wrap: break-word;
+  }
+
+  .reading > * + * {
+    margin-block-start: var(--paragraph-space);
+  }
+
+  /* ── Headings ──────────────────────────────────────────────────────────────*/
+  .reading :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink);
+    /* Optical alignment: headings read better slightly tighter than body text. */
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+
+  .reading > :is(h1, h2, h3, h4, h5, h6) {
+    margin-block-start: calc(var(--paragraph-space) * 2);
+    margin-block-end: calc(var(--paragraph-space) * 0.5);
+  }
+
+  .reading h1 {
+    font-size: 1.9em;
+  }
+  .reading h2 {
+    font-size: 1.5em;
+  }
+  .reading h3 {
+    font-size: 1.25em;
+  }
+  .reading h4 {
+    font-size: 1.1em;
+  }
+  .reading :is(h5, h6) {
+    font-size: 1em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  /* ── Inline ────────────────────────────────────────────────────────────────*/
+  .reading a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-soft);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .reading a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  .reading strong {
+    font-weight: 650;
+  }
+
+  .reading em {
+    font-style: italic;
+  }
+
+  .reading mark {
+    background-color: var(--selection);
+    color: inherit;
+    padding: 0 0.15em;
+  }
+
+  .reading del {
+    color: var(--ink-faint);
+  }
+
+  /* ── Lists ─────────────────────────────────────────────────────────────────*/
+  .reading :is(ul, ol) {
+    padding-inline-start: 1.4em;
+  }
+
+  .reading ul {
+    list-style: none;
+  }
+
+  /* A small square, closer to a printed bullet than the browser's disc. */
+  .reading ul > li::before {
+    content: '';
+    display: inline-block;
+    width: 0.3em;
+    height: 0.3em;
+    margin-inline-start: -0.9em;
+    margin-inline-end: 0.6em;
+    vertical-align: 0.18em;
+    background-color: var(--ink-faint);
+  }
+
+  .reading ol {
+    list-style: decimal;
+  }
+
+  .reading li + li {
+    margin-block-start: calc(var(--paragraph-space) * 0.35);
+  }
+
+  .reading li > :is(ul, ol) {
+    margin-block-start: calc(var(--paragraph-space) * 0.35);
+  }
+
+  /* Task lists: the checkbox replaces the bullet. */
+  .reading li:has(> input[type='checkbox'])::before {
+    display: none;
+  }
+
+  .reading input[type='checkbox'] {
+    margin-inline-start: -1.25em;
+    margin-inline-end: 0.5em;
+    accent-color: var(--accent);
+    vertical-align: 0.05em;
+  }
+
+  .reading li:has(> input[type='checkbox']:checked) {
+    color: var(--ink-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-faint);
+  }
+
+  /* ── Quotations ────────────────────────────────────────────────────────────*/
+  .reading blockquote {
+    border-inline-start: 2px solid var(--accent-soft);
+    padding-inline-start: 1.1em;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  .reading blockquote cite {
+    display: block;
+    margin-block-start: 0.5em;
+    font-style: normal;
+    font-size: 0.85em;
+    color: var(--ink-faint);
+  }
+
+  /* ── Code ──────────────────────────────────────────────────────────────────*/
+  .reading :is(code, kbd, samp) {
+    font-family: var(--font-editor);
+    /* Monospace faces run large next to a serif; 0.85 restores the colour. */
+    font-size: 0.85em;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  .reading :not(pre) > code {
+    background-color: var(--surface-sunken);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.05em 0.3em;
+  }
+
+  .reading pre {
+    background-color: var(--surface-sunken);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.9em 1.1em;
+    overflow-x: auto;
+    line-height: 1.55;
+    /* Code is not prose: keep it out of the reader's justified measure. */
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  .reading pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+
+  /* ── Tables ────────────────────────────────────────────────────────────────*/
+  .reading .table-scroll {
+    overflow-x: auto;
+  }
+
+  .reading table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92em;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  .reading :is(th, td) {
+    border-block-end: 1px solid var(--rule);
+    padding: 0.5em 0.7em;
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .reading th {
+    font-weight: 650;
+    color: var(--ink-muted);
+    letter-spacing: 0.03em;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    border-block-end: 1px solid var(--ink-faint);
+  }
+
+  /* ── Figures ───────────────────────────────────────────────────────────────*/
+  .reading img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--paper-edge);
+    background-color: var(--surface);
+  }
+
+  .reading figcaption {
+    margin-block-start: 0.5em;
+    font-size: 0.85em;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+
+  /* ── Footnotes ─────────────────────────────────────────────────────────────*/
+  .reading .footnotes {
+    margin-block-start: calc(var(--paragraph-space) * 3);
+    padding-block-start: var(--paragraph-space);
+    border-block-start: 1px solid var(--rule);
+    font-size: 0.88em;
+    color: var(--ink-muted);
+  }
+
+  .reading .footnotes h2 {
+    font-size: 0.85em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: var(--font-reading);
+  }
+
+  .reading sup a {
+    text-decoration: none;
+    padding-inline: 0.1em;
+  }
+
+  /* ── Wiki links ────────────────────────────────────────────────────────────*/
+  .reading .wikilink {
+    text-decoration-style: solid;
+  }
+
+  /* A link to a note that has not been written yet. */
+  .reading .wikilink[data-missing='true'] {
+    color: var(--ink-faint);
+    text-decoration-style: dashed;
+    text-decoration-color: var(--ink-faint);
+  }
+
+  /* ── Callouts ──────────────────────────────────────────────────────────────*/
+  .reading .callout {
+    border: 1px solid var(--rule);
+    border-inline-start: 2px solid var(--accent-soft);
+    background-color: color-mix(in srgb, var(--surface) 55%, transparent);
+    padding: 0.8em 1.1em;
+  }
+
+  .reading .callout-title {
+    font-family: var(--font-reading);
+    font-weight: 650;
+    font-size: 0.9em;
+    letter-spacing: 0.03em;
+    color: var(--ink-muted);
+    margin-block-end: 0.35em;
+    display: flex;
+    align-items: center;
+    gap: 0.45em;
+  }
+
+  /* ── Drop cap ──────────────────────────────────────────────────────────────
+   * Applied only where a note opts in, never automatically.
+   */
+  .reading.has-dropcap > p:first-of-type::first-letter {
+    float: inline-start;
+    font-family: var(--font-display);
+    font-size: 3.1em;
+    line-height: 0.82;
+    padding-inline-end: 0.08em;
+    padding-block-start: 0.06em;
+    color: var(--accent);
+  }
+}

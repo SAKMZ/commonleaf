@@ -1,0 +1,47 @@
+# Run from the repository root:
+#   docker compose -f docker/docker-compose.yml up --build
+#
+# Configuration comes from a `.env` file beside this one, or from the
+# environment. Copy `.env.example` and fill it in first.
+
+services:
+  commonleaf:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: commonleaf:latest
+    container_name: commonleaf
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      # Either configure the GitHub driver …
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-github}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_OWNER: ${GITHUB_OWNER:-}
+      GITHUB_REPOSITORY: ${GITHUB_REPOSITORY:-}
+      GITHUB_BRANCH: ${GITHUB_BRANCH:-main}
+      # … or point the filesystem driver at the mounted volume below.
+      CONTENT_ROOT: ${CONTENT_ROOT:-}
+      CONTENT_DIRECTORY: ${CONTENT_DIRECTORY:-content}
+    volumes:
+      # Only needed for the filesystem driver. `commonleaf-vault` keeps the
+      # notes outside the container so they survive rebuilds; replace it with a
+      # bind mount such as `./vault:/data` to keep them in a directory you can
+      # open in any editor.
+      - commonleaf-vault:/data
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  commonleaf-vault:

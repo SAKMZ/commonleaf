@@ -1,0 +1,139 @@
+/*
+ * The command palette.
+ *
+ * A slip of paper laid on top of the page, not a modal dialog: it sits high in
+ * the viewport where the eye already is, casts one shadow, and has no title
+ * bar, no close button and no chrome of any kind.
+ */
+
+@layer components {
+  .palette-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    justify-content: center;
+    /*
+     * Without this the palette stretches to its own `max-height` whatever is in
+     * it, leaving a slab of empty paper under the footer when there are three
+     * results. It should hug its contents and only then hit the cap.
+     */
+    align-items: flex-start;
+    padding: 4rem 1rem 1rem;
+    background-color: color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+
+  @media (min-width: 40rem) {
+    .palette-backdrop {
+      padding-top: 8vh;
+    }
+  }
+
+  .palette {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 34rem;
+    max-height: min(28rem, 76dvh);
+    overflow: hidden;
+    background-color: var(--paper);
+    border: 1px solid var(--paper-edge);
+    box-shadow: var(--shadow-sheet);
+  }
+
+  .palette-input {
+    width: 100%;
+    padding: 0.9rem 1.1rem;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    outline: none;
+    font-size: 1.0625rem;
+  }
+
+  .palette-input::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .palette-results {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.35rem;
+  }
+
+  .palette-group {
+    padding: 0.5rem 0.75rem 0.25rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .palette-option {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.45rem 0.7rem;
+    text-align: start;
+    color: var(--ink-muted);
+    border-radius: 2px;
+    cursor: default;
+  }
+
+  /*
+   * Only one row is ever marked, and it is marked by the keyboard cursor rather
+   * than by the mouse — so moving the pointer across the list does not fight
+   * with arrowing through it. Hover updates the selection instead of drawing
+   * its own highlight.
+   */
+  .palette-option[data-selected='true'] {
+    color: var(--ink);
+    background-color: var(--surface-sunken);
+  }
+
+  .palette-option-text {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .palette-option-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .palette-option-hint {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    color: var(--ink-faint);
+  }
+
+  .palette-icon {
+    flex: none;
+    color: var(--ink-faint);
+  }
+
+  .palette-empty {
+    padding: 1.75rem 1rem;
+    text-align: center;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  .palette-footer {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 0.9rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+  }
+
+  .palette-key {
+    font-family: var(--font-editor);
+    font-size: 0.6875rem;
+  }
+}

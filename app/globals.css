@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+@import '../styles/paper.css';
+@import '../styles/typography.css';
+@import '../styles/editor.css';
+@import '../styles/shell.css';
+@import '../styles/palette.css';
+
+/*
+ * Tailwind's design tokens point at the runtime custom properties rather than
+ * at fixed values, so `bg-paper` follows whichever theme the reader chose.
+ * `inline` keeps the reference rather than copying the value at build time.
+ */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-edge: var(--paper-edge);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --font-reading: var(--font-reading);
+  --font-editor: var(--font-editor);
+  --font-display: var(--font-display);
+
+  /* One shadow, used everywhere. Paper does not cast four different shadows. */
+  --shadow-sheet: 0 1px 2px var(--shadow), 0 12px 28px -12px var(--shadow);
+  --shadow-raised: 0 1px 1px var(--shadow), 0 4px 12px -6px var(--shadow);
+}
+
+/*
+ * Fallback values for the moment before the bootstrap script runs, and for
+ * readers with JavaScript disabled. They match the default theme.
+ */
+:root {
+  --paper: #f7f2e7;
+  --paper-edge: #e4dbc6;
+  --surface: #eae2cf;
+  --surface-sunken: #e0d6c0;
+  --ink: #2b2723;
+  --ink-muted: #5c554b;
+  --ink-faint: #8b8172;
+  --rule: #ded5c2;
+  --accent: #3f5566;
+  --accent-soft: #93a3af;
+  --selection: rgba(201, 181, 138, 0.38);
+  --shadow: rgba(60, 48, 32, 0.16);
+  --texture: #6b5b45;
+
+  --font-reading: var(--font-eb-garamond), Georgia, 'Times New Roman', serif;
+  --font-editor: var(--font-jetbrains-mono), ui-monospace, Menlo, monospace;
+  --font-display: var(--font-caveat), ui-rounded, cursive;
+
+  --reading-size: 19px;
+  --reading-leading: 1.65;
+  --paragraph-space: 0.9em;
+  --measure: 720px;
+  --texture-strength: 0.25;
+
+  /* How strong the grain is allowed to become at 100%. Restraint on purpose. */
+  --texture-ceiling: 0.055;
+  --texture-blend: multiply;
+}
+
+[data-mode='dark'] {
+  --texture-ceiling: 0.07;
+  --texture-blend: screen;
+}
+
+/*
+ * High contrast deepens the ink and the rules rather than switching to pure
+ * black on white, which would undo the point of the paper themes.
+ */
+[data-contrast='high'] {
+  --ink-muted: var(--ink);
+  --ink-faint: var(--ink-muted);
+  --rule: var(--ink-faint);
+  --texture-ceiling: 0;
+}
+
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  html {
+    background-color: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-reading);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'onum' 1;
+  }
+
+  ::selection {
+    background-color: var(--selection);
+  }
+
+  /*
+   * A single, unmistakable focus ring. Never removed — a keyboard-first app
+   * that hides focus is unusable.
+   */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Hairlines that stay hairlines on high-density displays. */
+  hr {
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+}
+
+/*
+ * Motion is subtle by default and disappears entirely when the reader asks for
+ * that, either in the settings or at the operating system level.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-motion='reduced'] *,
+[data-motion='reduced'] *::before,
+[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

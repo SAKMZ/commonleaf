@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Test output
+coverage/
+
+# Environment — never commit a token
+.env
+.env.local
+.env*.local
+
+# Editor and assistant tooling, which is per-checkout and not project config.
+.claude/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local vault used by the filesystem storage driver
+/vault/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/

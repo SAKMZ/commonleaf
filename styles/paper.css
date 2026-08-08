@@ -1,0 +1,149 @@
+/*
+ * The sheet of paper, and the desk it lies on.
+ *
+ * Everything here is decoration that the content sits on top of. It is kept
+ * out of the components so that a component never has to know whether the
+ * reader turned on deckled edges.
+ */
+
+@layer components {
+  /* ── Grain ─────────────────────────────────────────────────────────────────
+   * A fixed overlay across the whole viewport rather than per-sheet, so the
+   * grain does not slide as the page scrolls — real paper texture does not move
+   * relative to the paper.
+   */
+  .paper-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: calc(var(--texture-strength) * var(--texture-ceiling));
+    mix-blend-mode: var(--texture-blend);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
+
+  /* Laid lines: the faint parallel marks left by a paper mould. */
+  .paper-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.5;
+    background-image: repeating-linear-gradient(
+      to right,
+      color-mix(in srgb, var(--texture) 9%, transparent) 0 1px,
+      transparent 1px 4px
+    );
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .paper-grain {
+      transition: opacity 240ms ease;
+    }
+  }
+
+  /* ── The sheet ─────────────────────────────────────────────────────────────*/
+  .sheet {
+    position: relative;
+    background-color: var(--paper);
+    box-shadow: var(--shadow-sheet);
+    border: 1px solid var(--paper-edge);
+  }
+
+  /*
+   * A hand-torn edge. Drawn with a clip path so it costs nothing to render and
+   * degrades to a straight edge where clip-path is unsupported.
+   */
+  [data-edges='deckled'] .sheet {
+    border-right: 0;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 5px) 0,
+      100% 1.5%,
+      calc(100% - 4px) 4%,
+      100% 7%,
+      calc(100% - 6px) 11%,
+      calc(100% - 1px) 15%,
+      calc(100% - 5px) 19%,
+      100% 24%,
+      calc(100% - 4px) 29%,
+      calc(100% - 7px) 34%,
+      calc(100% - 2px) 39%,
+      calc(100% - 5px) 45%,
+      100% 51%,
+      calc(100% - 4px) 57%,
+      calc(100% - 6px) 63%,
+      calc(100% - 1px) 69%,
+      calc(100% - 5px) 75%,
+      100% 81%,
+      calc(100% - 4px) 87%,
+      calc(100% - 6px) 93%,
+      calc(100% - 2px) 97%,
+      calc(100% - 5px) 100%,
+      0 100%
+    );
+  }
+
+  /* Stitched binding down the inner margin. */
+  [data-binding='on'] .sheet {
+    border-left: 1px solid var(--rule);
+  }
+
+  [data-binding='on'] .sheet::before {
+    content: '';
+    position: absolute;
+    inset-block: 1.5rem;
+    inset-inline-start: 1.15rem;
+    width: 1px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--ink-faint) 0 7px,
+      transparent 7px 15px
+    );
+    opacity: 0.5;
+  }
+
+  /* ── Ribbon bookmark ───────────────────────────────────────────────────────*/
+  .ribbon {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 2.5rem;
+    width: 1.15rem;
+    height: 3.6rem;
+    background-color: var(--accent);
+    opacity: 0.85;
+    /* The notched tail of a sewn-in ribbon. */
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 0.55rem), 0 100%);
+  }
+
+  [data-ribbon='off'] .ribbon {
+    display: none;
+  }
+
+  /* ── Rules and dividers ────────────────────────────────────────────────────*/
+  .rule-soft {
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  /*
+   * A centred ornament instead of a plain line, the way a printed book breaks a
+   * section. Used for `---` in rendered notes.
+   */
+  .rule-ornament {
+    border: 0;
+    /*
+     * The UA stylesheet gives `hr` `height: 0` and `overflow: hidden`, which
+     * between them clip the fleuron's ascender and descender. Both have to go.
+     */
+    height: auto;
+    overflow: visible;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--ink-faint);
+  }
+
+  .rule-ornament::after {
+    content: '❦';
+    font-size: 1rem;
+  }
+}
